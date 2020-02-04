@@ -1,21 +1,16 @@
-FROM openjdk:slim-buster
+FROM ubuntu:latest
 
 LABEL maintainer="Benjamin J. Martinez <benjamin.martinez@kavak.com"
 
-# Add the liquibase user and step in the directory
-RUN adduser --system --home /liquibase --disabled-password --group liquibase
-WORKDIR /liquibase
+# Install dependencies
+RUN apt-get update && apt-get install -y default-jdk curl \
+  && java -version
+ENV VERSION=3.8.5
 
-# Change to the liquibase user
-USER liquibase
+RUN curl -L https://github.com/liquibase/liquibase/releases/download/v${VERSION}/liquibase-${VERSION}.tar.gz -o liquibase-core-${VERSION}-bin.tar.gz \
+  && tar -xzf liquibase-core-${VERSION}-bin.tar.gz -C /bin \
+  && rm liquibase-core-${VERSION}-bin.tar.gz \
+  && chmod 777 /bin/liquibase \
+  && liquibase --help
 
-ENV LIQUIBASE_VERSION 3.8.5
-
-RUN curl -L https://github.com/liquibase/liquibase/releases/download/v${LIQUIBASE_VERSION}/liquibase-${LIQUIBASE_VERSION}.tar.gz -o liquibase-core-${LIQUIBASE_VERSION}-bin.tar.gz \
-  && tar -xzf liquibase-core-${LIQUIBASE_VERSION}-bin.tar.gz \
-  && rm liquibase-core-${LIQUIBASE_VERSION}-bin.tar.gz
-
-RUN chmod 777 /liquibase
-
-ENTRYPOINT ["/liquibase/liquibase"]
-CMD ["--help"]
+CMD ["/bin/bash"]
